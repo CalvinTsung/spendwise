@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SpendWise · Daily Expense Tracker</title>
+<meta name="description" content="Track daily expenses, split them into necessary vs discretionary spending, set a monthly budget and export to Excel." />
+<meta name="theme-color" content="#0b7d6d" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="SpendWise" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="apple-touch-icon.png" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M3 10h18" stroke="currentColor" stroke-width="1.8"/>
+          <rect x="6" y="13" width="5" height="2.6" rx="1" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="brand-name">SpendWise</span>
+      <span id="currentTag" class="current-tag">This month</span>
+    </div>
+
+    <nav class="month-nav" aria-label="Month navigation">
+      <button id="prevMonthBtn" class="icon-btn" title="Previous month" aria-label="Previous month">&#8249;</button>
+      <button id="monthLabel" class="month-label" title="Back to this month">September 2026</button>
+      <button id="nextMonthBtn" class="icon-btn" title="Next month" aria-label="Next month">&#8250;</button>
+      <button id="todayBtn" class="btn btn-ghost btn-sm">Now</button>
+    </nav>
+
+    <div class="actions">
+      <div class="export-wrap">
+        <button id="exportBtn" class="btn btn-ghost">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Export Excel
+        </button>
+        <div id="exportMenu" class="export-menu hidden">
+          <div class="menu-title">Export to Excel</div>
+          <button id="exportMonthBtn" class="menu-item">
+            <span class="menu-item-main">This month's expenses</span>
+            <span class="menu-item-sub">Records for the month you are viewing, plus a monthly summary sheet</span>
+          </button>
+          <button id="exportAllBtn" class="menu-item">
+            <span class="menu-item-main">All records</span>
+            <span class="menu-item-sub">Every month's details plus the monthly summary</span>
+          </button>
+          <div class="menu-note">If the Excel library cannot be loaded (e.g. offline), a CSV file will be downloaded instead — it also opens in Excel.</div>
+        </div>
+      </div>
+
+      <button id="addBtn" class="btn btn-primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add Expense
+      </button>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="container">
+
+    <!-- Summary -->
+    <section class="summary-grid">
+
+      <!-- Budget / remaining card -->
+      <div class="card budget-card">
+        <div class="budget-head">
+          <span class="section-title">Monthly Spending Limit</span>
+          <button id="editBudgetBtn" class="link-btn">Edit</button>
+        </div>
+
+        <div class="budget-body">
+          <div class="ring-wrap" id="ringWrap">
+            <svg viewBox="0 0 120 120" width="168" height="168">
+              <circle class="ring-bg" cx="60" cy="60" r="52" />
+              <circle id="ringFg" class="ring-fg" cx="60" cy="60" r="52" />
+            </svg>
+            <div class="ring-center">
+              <div id="ringLabel" class="ring-label">Left to spend</div>
+              <div id="ringValue" class="ring-value">--</div>
+              <div id="ringHint" class="ring-hint"></div>
+            </div>
+          </div>
+
+          <div class="budget-tip" id="budgetTip"></div>
+
+          <div class="stat-row">
+            <div class="stat">
+              <div class="stat-label">Spent this month</div>
+              <div class="stat-value" id="statSpent">$0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label"><span class="swatch need"></span>Necessary</div>
+              <div class="stat-value need-txt" id="statNeed">$0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label"><span class="swatch want"></span>Discretionary</div>
+              <div class="stat-value want-txt" id="statWant">$0</div>
+            </div>
+          </div>
+
+          <div class="budget-track" id="budgetTrackWrap">
+            <div class="track">
+              <div id="budgetTrackFill" class="track-fill" style="width:0%"></div>
+            </div>
+            <div class="track-legend" id="budgetTrackText">Set your monthly spending limit to get started</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spending split card -->
+      <div class="card split-card">
+        <div class="card-head">
+          <span class="section-title">Spending Breakdown</span>
+          <span id="avgDay" class="muted-sm"></span>
+        </div>
+
+        <div class="split-total">
+          <div class="split-total-label">Total this month</div>
+          <div class="split-total-value" id="splitTotal">$0</div>
+        </div>
+
+        <div class="split-item">
+          <div class="split-row">
+            <span><span class="swatch need"></span>Necessary <em id="needCount">0 items</em></span>
+            <span class="split-amt need-txt" id="needAmt">$0</span>
+          </div>
+          <div class="bar"><div id="needBar" class="bar-fill need" style="width:0%"></div></div>
+          <div class="split-pct" id="needPct">0% of total</div>
+        </div>
+
+        <div class="split-item">
+          <div class="split-row">
+            <span><span class="swatch want"></span>Discretionary <em id="wantCount">0 items</em></span>
+            <span class="split-amt want-txt" id="wantAmt">$0</span>
+          </div>
+          <div class="bar"><div id="wantBar" class="bar-fill want" style="width:0%"></div></div>
+          <div class="split-pct" id="wantPct">0% of total</div>
+        </div>
+
+        <div class="tip-card" id="topCat">—</div>
+
+        <div class="guide">
+          <div class="guide-title">How is it categorized?</div>
+          <div><span class="k need"></span><b>Necessary</b> — everyday essentials: meals, rent &amp; utilities, transport, healthcare, insurance, education…</div>
+          <div><span class="k want"></span><b>Discretionary</b> — lifestyle spending: dining out, shopping, entertainment, snacks, travel, games…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Expense records -->
+    <section class="card records-card">
+      <div class="records-toolbar">
+        <div class="filters" id="filterChips">
+          <button class="chip active" data-filter="all">All</button>
+          <button class="chip" data-filter="necessary">Necessary</button>
+          <button class="chip" data-filter="optional">Discretionary</button>
+        </div>
+        <div class="records-meta">
+          <span id="recSummary"></span>
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="searchInput" type="search" placeholder="Search category or note…" />
+          </div>
+        </div>
+      </div>
+
+      <ul id="recordList" class="record-list"></ul>
+
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="M3 10h18"/><path d="M8 15h5"/></svg>
+        </div>
+        <div class="empty-title" id="emptyTitle">No expenses yet</div>
+        <div class="empty-sub">Tap “Add Expense” to record your first purchase — your remaining budget updates instantly.</div>
+        <button id="demoBtn" class="btn btn-ghost">Load sample data to preview</button>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <button id="syncBtn" class="sync-chip" title="Cloud sync settings">
+        <span class="sync-dot off" id="syncDot"></span>
+        <span id="syncLabel">Cloud sync: off</span>
+      </button>
+      <span class="foot-note" id="footNote">All data stays on this device until you turn on cloud sync.</span>
+      <button id="clearBtn" class="link-btn danger">Clear all data</button>
+    </footer>
+  </main>
+</div>
+
+<!-- Add / edit expense modal -->
+<div id="modalExpense" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="expenseTitle">Add Expense</h3>
+      <button class="icon-btn close-btn" data-close="modalExpense" aria-label="Close">&times;</button>
+    </div>
+    <form id="expenseForm">
+      <input type="hidden" id="editingId" value="" />
+      <div class="form-row two-col">
+        <label class="field">
+          <span class="field-label">Date</span>
+          <input type="date" id="expDate" required />
+        </label>
+        <label class="field">
+          <span class="field-label">Amount ($)</span>
+          <input type="number" id="expAmount" min="1" step="0.5" placeholder="e.g. 350" inputmode="decimal" required />
+        </label>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Spending type</span>
+        <div class="seg" id="typeSeg">
+          <button type="button" class="seg-btn need" data-type="necessary">Necessary</button>
+          <button type="button" class="seg-btn want" data-type="optional">Discretionary</button>
+        </div>
+      </div>
+
+      <div class="form-row two-col">
+        <label class="field">
+          <span class="field-label">Category</span>
+          <select id="expCat"></select>
+        </label>
+        <label class="field">
+          <span class="field-label">Note (optional)</span>
+          <input type="text" id="expNote" maxlength="40" placeholder="e.g. team lunch, new book…" />
+        </label>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" data-close="modalExpense">Cancel</button>
+        <button type="submit" id="expenseSave" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Budget modal -->
+<div id="modalBudget" class="modal hidden">
+  <div class="modal-card modal-small">
+    <div class="modal-head">
+      <h3 id="budgetTitle">Set Monthly Spending Limit</h3>
+      <button class="icon-btn close-btn" data-close="modalBudget" aria-label="Close">&times;</button>
+    </div>
+    <form id="budgetForm">
+      <label class="field">
+        <span class="field-label">Monthly limit for <span id="budgetMonthLabel"></span> ($)</span>
+        <input type="number" id="budgetInput" min="0" step="100" placeholder="e.g. 30000" inputmode="numeric" />
+      </label>
+      <div class="field-hint" id="budgetHint"></div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" data-close="modalBudget">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Limit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Cloud sync modal -->
+<div id="modalSync" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Cloud sync</h3>
+      <button class="icon-btn close-btn" data-close="modalSync" aria-label="Close">&times;</button>
+    </div>
+
+    <div id="syncExplain" class="sync-explain"></div>
+
+    <div class="sync-state hidden" id="syncStateArea">
+      <div class="sync-row"><span>Status</span><b id="syncStatusLine">—</b></div>
+      <div class="sync-row">
+        <span>Sync code</span>
+        <span class="sync-code-line"><b id="syncCodeView">—</b><button id="syncCopyBtn" class="link-btn">Copy</button></span>
+      </div>
+      <div class="sync-row"><span>Last sync</span><b id="syncLastView">—</b></div>
+    </div>
+
+    <details class="setup">
+      <summary>One-time setup guide <em>(only if the first sync fails)</em></summary>
+      <ol>
+        <li>Open your <b>CloudBase console</b> → <b>身份认证</b> → <b>登录方式</b>, then turn <b>Anonymous sign-in / 匿名登录</b> on.</li>
+        <li>Create a database collection named exactly <b id="colName">sw_ledgers</b>, and pick the permission <b>“All users can read, only creator can write / 所有用户可读，仅创建者可写”</b>.</li>
+        <li>If the app runs on a custom domain, add it under <b>安全域名</b> (add <code>localhost</code> for local testing).</li>
+        <li>Come back here and press <b>Turn on sync</b> again.</li>
+      </ol>
+    </details>
+
+    <div class="field" id="cloudField">
+      <span class="field-label">Sync code</span>
+      <input id="cloudCodeInput" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="e.g. 7K4QZRTW" />
+    </div>
+
+    <div class="modal-foot">
+      <button id="genCodeBtn" class="btn btn-ghost">Generate code</button>
+      <button id="connectSyncBtn" class="btn btn-primary">Turn on sync</button>
+      <button id="disconnectSyncBtn" class="btn btn-ghost hidden">Stop sync</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="js/sync.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

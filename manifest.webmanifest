@@ -1,0 +1,26 @@
+{
+  "name": "SpendWise - Daily Expense Tracker",
+  "short_name": "SpendWise",
+  "description": "Track daily expenses, split necessary vs discretionary spending, set a monthly budget and export to Excel.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f5f9",
+  "theme_color": "#0b7d6d",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
