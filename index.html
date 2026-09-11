@@ -288,10 +288,10 @@
     <details class="setup">
       <summary>One-time setup guide <em>(only if the first sync fails)</em></summary>
       <ol>
-        <li>Open your <b>CloudBase console</b> → <b>身份认证</b> → <b>登录方式</b>, then turn <b>Anonymous sign-in / 匿名登录</b> on.</li>
-        <li>Create a database collection named exactly <b id="colName">sw_ledgers</b>, and pick the permission <b>“All users can read, only creator can write / 所有用户可读，仅创建者可写”</b>.</li>
-        <li>If the app runs on a custom domain, add it under <b>安全域名</b> (add <code>localhost</code> for local testing).</li>
-        <li>Come back here and press <b>Turn on sync</b> again.</li>
+        <li>Create a free project at <b>supabase.com</b>.</li>
+        <li>In the Supabase <b>SQL Editor</b>, paste and run <code>supabase-setup.sql</code> to create the <b>sw_ledgers</b> table and its policies.</li>
+        <li>Open Supabase <b>Settings → API</b> and copy the <b>Project URL</b> and the <b>publishable / anon public</b> key, then paste them into <code>js/sync.js</code>.</li>
+        <li>Deploy the site, come back here and press <b>Turn on sync</b> again.</li>
       </ol>
     </details>
 
@@ -310,7 +310,7 @@
 
 <div id="toast" class="toast hidden"></div>
 
-<script src="js/sync.js"></script>
+<script src="js/sync.js?v=2"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
